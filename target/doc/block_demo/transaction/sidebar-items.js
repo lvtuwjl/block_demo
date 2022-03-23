@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["SUBSIDY",""]],"struct":[["TXInput","TXInput represents a transaction input"],["TXOutput","TXOutput represents a transaction output"],["Transaction","Transaction represents a Bitcoin transaction"]]});

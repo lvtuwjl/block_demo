@@ -1,1 +1,0 @@
-initSidebarItems({"constant":[["GENESIS_COINBASE_DATA",""]],"struct":[["Blockchain","Bockchain keeps a sequence of Blocks"],["BlockchainIterator","BlockchainIterator is used to iterate over blockchain blocks"]]});
