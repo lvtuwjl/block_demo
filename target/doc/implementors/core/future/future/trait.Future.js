@@ -1,0 +1,3 @@
+(function() {var implementors = {};
+implementors["sled"] = [{"text":"impl <a class=\"trait\" href=\"https://doc.rust-lang.org/1.58.1/core/future/future/trait.Future.html\" title=\"trait core::future::future::Future\">Future</a> for <a class=\"struct\" href=\"sled/struct.Subscriber.html\" title=\"struct sled::Subscriber\">Subscriber</a>","synthetic":false,"types":["sled::subscriber::Subscriber"]}];
+if (window.register_implementors) {window.register_implementors(implementors);} else {window.pending_implementors = implementors;}})()
