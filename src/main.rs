@@ -10,11 +10,14 @@ extern crate log;
 
 pub type Result<T> = std::result::Result<T, failure::Error>;
 
+// use std::fmt::Error;
+
 // use std::pin::Pin;
 // use blockchain::*;
 // use std::thread::sleep;
 // use std::time::Duration;
 use crate::cli::Cli;
+
 use env_logger::Env;
 fn main() {
     // println!("Hello, world!");
@@ -33,5 +36,6 @@ fn main() {
     if let Err(e) = cli.run() {
         println!("Error: {}", e);
     }
+
     // Ok(())
 }
