@@ -1,6 +1,7 @@
 use super::*;
 use crate::blockchain::*;
 use crate::transaction::*;
+use crate::wallets::*;
 use clap::{App, Arg};
 use std::process::exit;
 
@@ -47,24 +48,35 @@ impl Cli {
 
         if let Some(ref matches) = matches.subcommand_matches("getbalance") {
             if let Some(address) = matches.value_of("address") {
-                let address = String::from(address);
+                let address = address.as_bytes();
                 let bc = Blockchain::new()?;
-                let utxos = bc.find_UTXO(&address);
+                let utxos = bc.find_UTXO(address);
 
                 let mut balance = 0;
                 for out in utxos {
                     balance += out.value
                 }
-                println!("Balance of '{}': {}\n", address, balance);
+                println!("Balance: {}\n",  balance);
                 // self.addblock(String::from(c))?;
             }
         }
 
-        if let Some(_) = matches.subcommand_matches("printchain") {
+        if let Some(_) = matches.subcommand_matches("createwallet") {
             // self.print_chain();
+            let mut ws = Wallets::new()?;
+            let address = ws.create_wallet();
+            ws.save_all()?;
+            // let bc = Blockchain::new()?;
+            // for b in bc.iter() {
+            //     println!("block: {:#?}", b);
+            // }
+            println!["success: address {}",address];
+        }
+
+        if let Some(_) = matches.subcommand_matches("printchain") {
             let bc = Blockchain::new()?;
             for b in bc.iter() {
-                println!("block: {:#?}", b);
+                println!("block: {:#?}",b);
             }
         }
 
