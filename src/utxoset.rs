@@ -40,16 +40,6 @@ impl UTXOSet {
         Ok((accumulated, unspent_outputs))
     }
 
-    pub fn count_transactions(&self) -> Result<i32> {
-        let mut counter = 0;
-        let db = sled::open("data/utxos")?;
-        for kv in db.iter() {
-            kv?;
-            counter += 1
-        }
-        Ok(counter)
-    }
-
     pub fn find_UTXO(&self, pub_key_hash: &[u8]) -> Result<TXOutputs> {
         let mut utxos = TXOutputs {
             outputs: Vec::new(),
@@ -66,6 +56,16 @@ impl UTXOSet {
             }
         }
         Ok(utxos)
+    }
+
+    pub fn count_transactions(&self) -> Result<i32> {
+        let mut counter = 0;
+        let db = sled::open("data/utxos")?;
+        for kv in db.iter() {
+            kv?;
+            counter += 1;
+        }
+        Ok(counter)
     }
 
     pub fn reindex(&self) -> Result<()> {
@@ -92,7 +92,7 @@ impl UTXOSet {
                     let outs: TXOutputs = deserialize(&db.get(&vin.txid)?.unwrap().to_vec())?;
                     for out_idx in 0..outs.outputs.len() {
                         if out_idx != vin.vout as usize {
-                            update_outputs.outputs.push(outs.outputs[out_idx]).clone();
+                            update_outputs.outputs.push(outs.outputs[out_idx].clone());
                         }
                     }
 

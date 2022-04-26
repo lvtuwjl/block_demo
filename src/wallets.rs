@@ -18,15 +18,15 @@ pub struct Wallet {
 
 impl Wallet {
     fn new() -> Self {
-        let mut key: [u8; 64] = [0; 64];
+        let mut key: [u8; 32] = [0; 32];
         let mut rand = rand::OsRng::new().unwrap();
         rand.fill_bytes(&mut key);
         let (secret_key, public_key) = ed25519::keypair(&key);
         let secret_key = secret_key.to_vec();
         let public_key = public_key.to_vec();
         Wallet {
-            secret_key: secret_key,
-            public_key: public_key,
+            secret_key,
+            public_key,
         }
     }
 
@@ -101,6 +101,7 @@ impl Wallets {
         }
 
         db.flush()?;
+        drop(db);
         Ok(())
     }
 }

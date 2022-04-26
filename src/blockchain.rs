@@ -2,6 +2,7 @@ use super::*;
 use crate::block::*;
 use crate::transaction::*;
 use bincode::{deserialize, serialize};
+use failure::format_err;
 use sled;
 use std::collections::HashMap;
 
@@ -12,9 +13,9 @@ const GENESIS_COINBASE_DATA: &str =
 #[derive(Debug)]
 pub struct Blockchain {
     // blocks: Vec<Block>,
-    tip: String,
+    pub tip: String,
     // current_hash: String,
-    db: sled::Db,
+    pub db: sled::Db,
 }
 
 /// BlockchainIterator is used to iterate over blockchain blocks
@@ -38,35 +39,12 @@ impl Blockchain {
             tip: lasthash.clone(),
             db,
         })
-        // match db.get("LAST")? {
-        //     Some(hash) => {
-        //         info!("Found block database");
-        //         let lasthash = String::from_utf8(hash.to_vec())?;
-        //         Ok(Blockchain {
-        //             tip: lasthash.clone(),
-        //             current_hash: lasthash,
-        //             db,
-        //         })
-        //     }
-        //     None => {
-        //         info!("Creating new block database");
-        //         let block = Block::new_genesis_bock();
-        //         db.insert(block.get_hash(), serialize(&block)?)?;
-        //         db.insert("LAST", block.get_hash().as_bytes())?;
-        //         let bc = Blockchain {
-        //             tip: block.get_hash(),
-        //             current_hash: block.get_hash(),
-        //             db,
-        //         };
-        //         bc.db.flush()?;
-        //         Ok(bc)
-        //     }
-        // }
     }
 
     /// CreateBlockchain creates a new blockchain DB
     pub fn create_blockchain(address: String) -> Result<Blockchain> {
         info!("Creating new blockchain");
+        std::fs::remove_dir_all("data/blocks")?;
         let db = sled::open("/data/blocks")?;
         debug!("Creating new block database");
 
@@ -85,8 +63,14 @@ impl Blockchain {
     }
 
     /// MineBlock mines a new block with the provided transactions
-    pub fn mine_block(&mut self, transactions: Vec<Transaction>) -> Result<()> {
+    pub fn mine_block(&mut self, mut transactions: Vec<Transaction>) -> Result<Block> {
         info!("mine a new block");
+        for tx in &mut transactions {
+            if !self.verify_transaction(tx)? {
+                return Err(format_err!("ERROR: Invalid transaction"));
+            }
+        }
+
         let lasthash = self.db.get("LAST")?.unwrap();
 
         let newblock = Block::new_block(transactions, String::from_utf8(lasthash.to_vec())?)?;
@@ -96,30 +80,8 @@ impl Blockchain {
         self.db.flush()?;
 
         self.tip = newblock.get_hash();
-        Ok(())
+        Ok(newblock)
     }
-
-    // / AddBlock saves provided data as a block in the blockchain
-    // / Save the block into the database
-    // pub fn add_block(&mut self, data: String) -> Result<()> {
-    //     info!("add new block to the chain");
-    //     let lasthash = self.db.get("LAST")?.unwrap();
-    //     let newblock = Block::new_block(data, String::from_utf8(lasthash.to_vec())?)?;
-    //     self.db.insert(newblock.get_hash(), serialize(&newblock)?)?;
-    //     self.db.insert("LAST", newblock.get_hash().as_bytes())?;
-    //     self.db.flush()?;
-
-    //     self.tip = newblock.get_hash();
-    //     self.current_hash = newblock.get_hash();
-
-    //     Ok(())
-
-    //     //     let prev = self.blocks.last().unwrap();
-    //     //     // println!("hah {:?}",prev);
-    //     //     let newblock = Block::new_block(data, prev.get_hash())?;
-    //     //     self.blocks.push(newblock);
-    //     //     Ok(())
-    // }
 
     /// Iterator returns a BlockchainIterator
     pub fn iter(&self) -> BlockchainIterator {
@@ -131,8 +93,8 @@ impl Blockchain {
 
     /// FindUTXO finds and returns all unspent transaction outputs
     pub fn find_UTXO(&self) -> HashMap<String, TXOutputs> {
-        let mut utxos = HashMap::new();
-        let mut spend_txos = HashMap::new();
+        let mut utxos = HashMap::<String, TXOutputs>::new();
+        let mut spend_txos = HashMap::<String, Vec<i32>>::new();
 
         for block in self.iter() {
             for tx in block.get_transaction() {
@@ -172,83 +134,44 @@ impl Blockchain {
                 }
             }
         }
-        // for tx in unspend_TXs {
-        //     for out in &tx.vout {
-        //         if out.is_locked_with_key(pub_key_hash) {
-        //             utxos.push(out.clone());
-        //         }
-        //     }
-        // }
 
         utxos
     }
 
-    /// FindUnspentTransactions returns a list of transactions containing unspent outputs
-    pub fn find_spendable_outputs(
-        &self,
-        pub_key_hash: &[u8],
-        amount: i32,
-    ) -> (i32, HashMap<String, Vec<i32>>) {
-        let mut unspent_outputs: HashMap<String, Vec<i32>> = HashMap::new();
-        let mut accumulated = 0;
-        let unspend_TXs = self.find_unspent_transactions(pub_key_hash);
-
-        for tx in unspend_TXs {
-            for index in 0..tx.vout.len() {
-                if tx.vout[index].is_locked_with_key(pub_key_hash) && accumulated < amount {
-                    match unspent_outputs.get_mut(&tx.id) {
-                        Some(v) => v.push(index as i32),
-                        None => {
-                            unspent_outputs.insert(tx.id.clone(), vec![index as i32]);
-                        }
-                    }
-
-                    accumulated += tx.vout[index].value;
-                    if accumulated >= amount {
-                        return (accumulated, unspent_outputs);
-                    }
+    pub fn find_transaction(&self, id: &str) -> Result<Transaction> {
+        for b in self.iter() {
+            for tx in b.get_transaction() {
+                if tx.id == id {
+                    return Ok(tx.clone());
                 }
             }
         }
-        (accumulated, unspent_outputs)
+
+        return Err(format_err!("Transaction is not found"));
     }
 
-    /// FindUnspentTransactions returns a list of transactions containing unspent outputs
-    fn find_unspent_transactions(&self, pub_key_hash: &[u8]) -> Vec<Transaction> {
-        let mut spent_TXOs: HashMap<String, Vec<i32>> = HashMap::new();
-        let mut unspend_TXs: Vec<Transaction> = Vec::new();
-
-        for block in self.iter() {
-            for tx in block.get_transaction() {
-                for index in 0..tx.vout.len() {
-                    if let Some(ids) = spent_TXOs.get(&tx.id) {
-                        if ids.contains(&(index as i32)) {
-                            continue;
-                        }
-                    }
-
-                    if tx.vout[index].is_locked_with_key(pub_key_hash) {
-                        unspend_TXs.push(tx.to_owned())
-                    }
-                }
-
-                if !tx.is_coinbase() {
-                    for i in &tx.vin {
-                        if i.uses_key(pub_key_hash) {
-                            match spent_TXOs.get_mut(&i.txid) {
-                                Some(v) => {
-                                    v.push(i.vout);
-                                }
-                                None => {
-                                    spent_TXOs.insert(i.txid.clone(), vec![i.vout]);
-                                }
-                            }
-                        }
-                    }
-                }
-            }
+    fn get_prev_TXs(&self, tx: &Transaction) -> Result<HashMap<String, Transaction>> {
+        let mut prev_TXs = HashMap::new();
+        for vin in &tx.vin {
+            let prev_TX = self.find_transaction(&vin.txid)?;
+            prev_TXs.insert(prev_TX.id.clone(), prev_TX);
         }
-        unspend_TXs
+
+        Ok(prev_TXs)
+    }
+
+    pub fn sign_transaction(&self, tx: &mut Transaction, private_key: &[u8]) -> Result<()> {
+        let prev_TXs = self.get_prev_TXs(tx)?;
+        tx.sign(private_key, prev_TXs)?;
+        Ok(())
+    }
+
+    pub fn verify_transaction(&self, tx: &mut Transaction) -> Result<bool> {
+        if tx.is_coinbase() {
+            return Ok(true);
+        }
+        let prev_TXs = self.get_prev_TXs(tx)?;
+        tx.verify(prev_TXs)
     }
 }
 
