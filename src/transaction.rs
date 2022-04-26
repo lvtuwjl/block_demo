@@ -1,5 +1,3 @@
-
-
 use super::*;
 use crate::blockchain::*;
 use crate::wallets::*;
@@ -17,8 +15,8 @@ const SUBSIDY: i32 = 10;
 pub struct TXInput {
     pub txid: String,
     pub vout: i32,
-    pub signature:String,
-    pub pub_key:Vec<u8>,
+    pub signature: String,
+    pub pub_key: Vec<u8>,
     // pub script_sig: String,
 }
 
@@ -27,6 +25,11 @@ pub struct TXInput {
 pub struct TXOutput {
     pub value: i32,
     pub pub_key_hash: Vec<u8>,
+}
+
+#[derive(Serialize, Deserialize, Debug, Clone)]
+pub struct TXOutputs {
+    pub outputs: Vec<TXOutput>,
 }
 
 /// Transaction represents a Bitcoin transaction
@@ -70,16 +73,16 @@ impl Transaction {
                     txid: tx.0.clone(),
                     vout: out,
                     // script_sig: String::from(from),
-                    signature:String::new(),
-                    pub_key:wallet.public_key.clone(),
+                    signature: String::new(),
+                    pub_key: wallet.public_key.clone(),
                 };
                 vin.push(input);
             }
         }
-        let mut vout = vec![TXOutput::new(amount,to.to_string())?];
+        let mut vout = vec![TXOutput::new(amount, to.to_string())?];
 
         if acc_v.0 > amount {
-            vout.push(TXOutput::new(acc_v.0-amount,from.to_string())?)
+            vout.push(TXOutput::new(acc_v.0 - amount, from.to_string())?)
         }
 
         let mut tx = Transaction {
@@ -105,10 +108,10 @@ impl Transaction {
                 txid: String::new(),
                 vout: -1,
                 // script_sig: data,
-                signature:String::new(),
-                pub_key:Vec::from(data.as_bytes()),
+                signature: String::new(),
+                pub_key: Vec::from(data.as_bytes()),
             }],
-            vout: vec![TXOutput::new(SUBSIDY,to)?],
+            vout: vec![TXOutput::new(SUBSIDY, to)?],
         };
         tx.set_id()?;
         Ok(tx)
@@ -129,8 +132,7 @@ impl Transaction {
 }
 
 impl TXInput {
-
-    pub fn uses_key(&self,pub_key_hash:&[u8]) -> bool {
+    pub fn uses_key(&self, pub_key_hash: &[u8]) -> bool {
         let mut pubkeyhash = self.pub_key.clone();
         hash_pub_key(&mut pubkeyhash);
         pubkeyhash == pub_key_hash
@@ -144,21 +146,21 @@ impl TXOutput {
     // pub fn can_be_unlock_with(&self, unlockingData: &str) -> bool {
     //     self.script_pub_key == unlockingData
     // }
-    pub fn is_locked_with_key(&self,pub_key_hash:&[u8]) -> bool {
+    pub fn is_locked_with_key(&self, pub_key_hash: &[u8]) -> bool {
         self.pub_key_hash == pub_key_hash
     }
 
-    fn lock(&mut self,address:&str) ->Result<()> {
+    fn lock(&mut self, address: &str) -> Result<()> {
         let pub_key_hash = Address::decode(address).unwrap().body;
-        debug!("lock: {}",address);
+        debug!("lock: {}", address);
         self.pub_key_hash = pub_key_hash;
         Ok(())
     }
 
-    pub fn new(value: i32,address:String) -> Result<Self> {
-        let mut txo = TXOutput{
+    pub fn new(value: i32, address: String) -> Result<Self> {
+        let mut txo = TXOutput {
             value,
-            pub_key_hash:Vec::new(),
+            pub_key_hash: Vec::new(),
         };
         txo.lock(&address)?;
         Ok(txo)

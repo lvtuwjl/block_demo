@@ -56,7 +56,7 @@ impl Cli {
                 for out in utxos {
                     balance += out.value
                 }
-                println!("Balance: {}\n",  balance);
+                println!("Balance: {}\n", balance);
                 // self.addblock(String::from(c))?;
             }
         }
@@ -70,13 +70,13 @@ impl Cli {
             // for b in bc.iter() {
             //     println!("block: {:#?}", b);
             // }
-            println!["success: address {}",address];
+            println!["success: address {}", address];
         }
 
         if let Some(_) = matches.subcommand_matches("printchain") {
             let bc = Blockchain::new()?;
             for b in bc.iter() {
-                println!("block: {:#?}",b);
+                println!("block: {:#?}", b);
             }
         }
 
