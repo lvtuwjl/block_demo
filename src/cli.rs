@@ -1,5 +1,4 @@
 use super::*;
-use crate::block::Block;
 use crate::blockchain::*;
 use crate::transaction::*;
 use crate::utxoset::*;
