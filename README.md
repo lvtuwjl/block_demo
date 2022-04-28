@@ -1,3 +1,3 @@
-# block_demo
-### a simple blockchain
-### Part5 add wallets
+# blockchain-rust
+### a simple blockchain fork go
+
