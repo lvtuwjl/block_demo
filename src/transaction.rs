@@ -161,7 +161,7 @@ impl Transaction {
         self.vin.len() == 1 && self.vin[0].txid.is_empty() && self.vin[0].vout == -1
     }
 
-    pub fn verify(&mut self, prev_TXs: HashMap<String, Transaction>) -> Result<bool> {
+    pub fn verify(&self, prev_TXs: HashMap<String, Transaction>) -> Result<bool> {
         if self.is_coinbase() {
             return Ok(true);
         }
