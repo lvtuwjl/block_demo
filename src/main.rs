@@ -44,4 +44,5 @@ fn main() {
 
     // add println
     println!("{}", "test println");
+    println!("{}", "test2..");
 }
