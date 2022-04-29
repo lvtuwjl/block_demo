@@ -45,13 +45,16 @@ pub struct Transaction {
 impl Transaction {
     /// NewUTXOTransaction creates a new transaction
     pub fn new_UTXO(wallet: &Wallet, to: &str, amount: i32, utxo: &UTXOSet) -> Result<Transaction> {
-        info!("new UTXO Transaction from: {} to: {}", wallet.get_address(), to);
+        info!(
+            "new UTXO Transaction from: {} to: {}",
+            wallet.get_address(),
+            to
+        );
         let mut vin = Vec::new();
 
         // let wallets = Wallets::new()?;
         let mut pub_key_hash = wallet.public_key.clone();
         hash_pub_key(&mut pub_key_hash);
-
 
         // let e = Err(format_err!("wallets not found"));
         // let wallet = match wallets.get_wallet(from) {
