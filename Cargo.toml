@@ -1,5 +1,5 @@
 [package]
-name = "block_demo"
+name = "block-rust"
 version = "0.1.0"
 authors = ["jianli <newyearwjl@gmail.com>"]
 edition = "2018"
