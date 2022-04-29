@@ -115,7 +115,7 @@ impl Cli {
             } else {
                 cmd_send(from, to, amount, false)?;
             }
-        } else if let Some(ref matches) = matches.subcommand_matches("start_node") {
+        } else if let Some(ref matches) = matches.subcommand_matches("startnode") {
             if let Some(port) = matches.value_of("port") {
                 println!("Start node...");
                 let bc = Blockchain::new()?;
