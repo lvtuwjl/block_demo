@@ -85,7 +85,7 @@ impl Server {
         let mut node_set = HashSet::new();
         node_set.insert(String::from(KNOWN_NODE1));
         Ok(Server {
-            node_address: String::from("localhost:") + port,
+            node_address: String::from("127.0.0.1:") + port,
             mining_address: miner_address.to_string(),
             inner: Arc::new(Mutex::new(ServerInner {
                 known_nodes: node_set,

@@ -43,8 +43,8 @@ fn main() {
     // Ok(())
 
     // add println
-    println!("{}", "test println");
-    println!("{}", "test2..");
-    println!("{}", "println test33..");
-    println!("{}", "test44");
+    // println!("{}", "test println");
+    // println!("{}", "test2..");
+    // println!("{}", "println test33..");
+    // println!("{}", "test44");
 }

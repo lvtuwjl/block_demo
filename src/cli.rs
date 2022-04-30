@@ -28,13 +28,13 @@ impl Cli {
             .subcommand(
                 App::new("startnode")
                     .about("start the node server")
-                    .arg(Arg::from_usage("<Port> 'the port server bind to locally'")),
+                    .arg(Arg::from_usage("<port> 'the port server bind to locally'")),
             )
             .subcommand(
                 App::new("startminer")
                     .about("start the miner server")
-                    .arg(Arg::from_usage("<Port> 'the port server bind to locally'"))
-                    .arg(Arg::from_usage("<Address> 'wallet address'")),
+                    .arg(Arg::from_usage("<port> 'the port server bind to locally'"))
+                    .arg(Arg::from_usage("<address> 'wallet address'")),
             )
             .subcommand(
                 App::new("getbalance")
@@ -116,6 +116,7 @@ impl Cli {
                 cmd_send(from, to, amount, false)?;
             }
         } else if let Some(ref matches) = matches.subcommand_matches("startnode") {
+            println!("11 {:?}",matches.value_of("port"));
             if let Some(port) = matches.value_of("port") {
                 println!("Start node...");
                 let bc = Blockchain::new()?;

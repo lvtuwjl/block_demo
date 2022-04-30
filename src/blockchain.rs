@@ -30,15 +30,29 @@ impl Blockchain {
         info!("open blockchain");
         let db = sled::open("data/blocks")?;
 
-        let hash = db
-            .get("LAST")?
-            .expect("Must create a new block database forst");
+        let hash = match db.get("LAST")? {
+            Some(l) => l.to_vec(),
+            None => Vec::new(),
+        };
+
         info!("Found block database");
-        let lasthash = String::from_utf8(hash.to_vec())?;
-        Ok(Blockchain {
-            tip: lasthash.clone(),
-            db,
-        })
+        let lasthash = if hash.is_empty() {
+            String::new()
+        } else {
+            String::from_utf8(hash.to_vec())?
+        };
+
+        Ok(Blockchain{tip:lasthash,db})
+
+        // let hash = db
+        //     .get("LAST")?
+        //     .expect("Must create a new block database forst");
+        // info!("Found block database");
+        // let lasthash = String::from_utf8(hash.to_vec())?;
+        // Ok(Blockchain {
+        //     tip: lasthash.clone(),
+        //     db,
+        // })
     }
 
     /// CreateBlockchain creates a new blockchain DB
